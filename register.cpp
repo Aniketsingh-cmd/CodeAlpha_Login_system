@@ -1,18 +1,31 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include<cstring>
 using namespace std;
+/*
+   Changes I have Made
+   Saving In dat File
+*/
+struct User{
+   char userName[50];
+   char userPass[50];
+};
 bool usernameExists(const string &username) {
-    ifstream fin("users.txt");
-    string u, p;
-    while (fin >> u >> p) {
-        if (u == username)
+    ifstream fin("users.dat", ios::binary);
+    User tempUser;
+    while (fin.read((char*)&tempUser, sizeof(tempUser))) {
+        // Compare input with the data read from file
+        if (username == tempUser.userName ) {
+            fin.close();
             return true;
+        }
     }
     return false;
 }
 
 void registerUser() {
+    User newUser;
     string username, password;
 
     cout << "\n--- Register ---\n";
@@ -25,29 +38,36 @@ void registerUser() {
     }
 
     cout << "Enter a password: ";
-    cin >> password;
-
-    ofstream fout("users.txt", ios::app);
-    fout << username << " " << password << "\n";
+    //Passwords Can Include Space,Using Cin Normally Skips This
+    cin.ignore();
+    getline(cin,password);
+    cin.clear(); //Clears Buffer
+     strcpy(newUser.userName,username.c_str());
+     strcpy(newUser.userPass,password.c_str());
+    ofstream fout("users.dat", ios::binary | ios::app);
+    fout.write((char*)&newUser, sizeof(newUser));
     fout.close();
 
     cout << " Registration successful!\n";
 }
 
 void loginUser() {
-    string username, password, u, p;
+    User tempUser;
+    string username, password;
     bool found = false;
 
     cout << "\n--- Login ---\n";
     cout << "Enter username: ";
     cin >> username;
     cout << "Enter password: ";
-    cin >> password;
+    cin.ignore();
+    getline(cin,password);
+    cin.clear();
+    ifstream fin("users.dat", ios::binary);
 
-    ifstream fin("users.txt");
-
-    while (fin >> u >> p) {
-        if (u == username && p == password) {
+    while (fin.read((char*)&tempUser, sizeof(tempUser))) {
+        // Compare input with the data read from file
+        if (username == tempUser.userName && password == tempUser.userPass) {
             found = true;
             break;
         }
@@ -61,14 +81,14 @@ void loginUser() {
 }
 
 void showUsers() {
-    ifstream fin("users.txt");
-    string u, p;
+    ifstream fin("users.dat" , ios::binary);
+    User tempUser;
 
     cout << "\n--- Registered Users ---\n";
 
     bool empty = true;
-    while (fin >> u >> p) {
-        cout << "- " << u << "\n";
+      while (fin.read((char*)&tempUser, sizeof(tempUser))) {
+        cout << "- " << tempUser.userName << "\n";
         empty = false;
     }
 
